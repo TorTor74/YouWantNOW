@@ -5,7 +5,7 @@
 </script>
 
 <div class="element">
-	<search-box />
+	<search-box on:search={console.log} />
 </div>
 
 <style>
