@@ -1,6 +1,8 @@
 <svelte:options customElement="search-box" />
 
 <script>
+// @ts-nocheck
+
 	import City from "./City.svelte";
 	import { getContext } from "svelte";
 	import { setDefaultOptions } from "date-fns";
@@ -8,7 +10,6 @@
 	import { setContext } from "svelte";
 	import { writable } from "svelte/store";
 
-	
 	setDefaultOptions({ locale: ru, weekStartsOn: 1 });
 
 	const today = writable(new Date());
@@ -18,14 +19,14 @@
 
 	let start = startOfWeek(startOfMonth($today));
 	let end = addDays(start, 41);
-	let startNext = startOfWeek(startOfMonth(addMonths($today, 1)));
-	let endNext = addDays(startNext, 41);
+	let startNext = addMonths(startOfMonth($today),1);
+	let endNext = addDays(startOfWeek(startNext), 41);
 	const days = eachDayOfInterval({
 		start,
 		end,
 	});
 	const daysNext = eachDayOfInterval({
-		start: startNext,
+		start: startOfWeek(startNext),
 		end: endNext,
 	});
 	let city;
@@ -34,14 +35,22 @@
 	let openDate = false;
 	let open = false;
 	let yes = true;
+	let startTrip, endTrip;
 	const selectCity = (e) => {
 		const { iso2 } = e.detail;
 		city = iso2;
 		console.log(e.detail);
 	};
+	$: console.log(addMonths(startOfMonth($today),1));
+	const choiceTrip = (item) => {
+		if (startTrip != undefined && yes) {
+			endTrip = item;
+		} else if(endTrip==undefined ) {
+			startTrip = item;
+		}
+	};
 
-
-	
+	$: !yes ? (endTrip = "") : endTrip;
 </script>
 
 <div class="search-box">
@@ -82,12 +91,13 @@
 					/>
 				</svg>
 				{#if open}
-					<City on:selected={(e) => {
-						const { iso2 } = e.detail;
-						secondCity = iso2;
-						console.log(secondCity)
-
-					}}/>
+					<City
+						on:selected={(e) => {
+							const { iso2 } = e.detail;
+							secondCity = iso2;
+							console.log(secondCity);
+						}}
+					/>
 				{/if}
 			</div>
 		</label>
@@ -105,8 +115,9 @@
 				openDate = true;
 			}}
 		>
-			<div class="start" />
-			<div class="end" />
+			<div class="start">{startTrip ? format(startTrip, "EEEEEE d/MM") : ""}</div>
+			-
+			<div class="end">{endTrip ? format(endTrip, "EEEEEE d/MM") : ""}</div>
 
 			{#if openDate}
 				<div class="openDate">
@@ -127,7 +138,7 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 									/>
-								</svg>{format($today, "MMMM")}
+								</svg>{format($today, "LLLL")}
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									width="7"
@@ -156,7 +167,7 @@
 							</div>
 							<div class="grid-calendar">
 								{#each days as day}
-									<div class="item">
+									<div class="item" on:click={() => choiceTrip(day)}>
 										{format(day, "d")}
 									</div>
 								{/each}
@@ -178,7 +189,7 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 									/>
-								</svg>{format($today, "MMMM")}
+								</svg>{format(startNext, "LLLL")}
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									width="7"
@@ -207,7 +218,7 @@
 							</div>
 							<div class="grid-calendar">
 								{#each daysNext as day}
-									<div class="item">
+									<div class="item" on:click={() => choiceTrip(day)}>
 										{format(day, "d")}
 									</div>
 								{/each}
@@ -220,7 +231,7 @@
 					<div class="bottom">
 						<div class="chekbox"><input type="checkbox" bind:checked={yes} /> Без конечной даты</div>
 
-						<button on:click={() => (openDate = !openDate)}> Готово </button>
+						<button> Готово </button>
 					</div>
 				</div>
 			{/if}
@@ -300,8 +311,7 @@
 				padding: 5.186px 0px 6.05px 18px;
 
 				height: 32px;
-				flex-direction: column;
-				justify-content: center;
+				justify-content: space-around;
 				align-items: flex-start;
 				gap: 10px;
 				border-radius: 5px;
