@@ -1,4 +1,7 @@
 <script>
+	/**
+	 * Imports
+	 */
 	import { createEventDispatcher } from "svelte";
 	import {
 		addDays,
@@ -12,12 +15,20 @@
 		isWithinInterval,
 		isBefore,
 	} from "date-fns";
+
+	/**
+	 * Exports
+	 */
 	export let date;
 	export let yes;
 	export let first;
 	export let second;
+
 	let today = new Date();
-	let startTrip, endTrip;
+
+	/**
+	 * Event trip
+	 */
 
 	const choiceTrip = (item) => {
 		emit("trip", item);
@@ -42,7 +53,10 @@
 </script>
 
 <div class="calendar">
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="month">
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="preview"
 			on:click={() => {
@@ -60,6 +74,8 @@
 			</svg>
 		</div>
 		{format(date, "LLLL")}
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="next"
 			on:click={() => {
@@ -88,7 +104,9 @@
 		<div class="day">Вс</div>
 	</div>
 	<div class="grid-calendar">
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		{#each days as day}
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<div
 				class="item"
 				on:click|preventDefault|stopPropagation={() => choiceTrip(day)}
@@ -139,48 +157,20 @@
 			line-height: normal;
 
 			&.selected {
-				background-color: #272727;
+				border-radius: 3px;
+				background: var(--Gray-1, #333);
+				color: #fff !important;
 			}
 			&.between {
-				background-color: #7b7b7b;
+				border-radius: 3px;
+				background: var(--Gray-1, #333);
+				color: #fff !important;
 			}
 			&.before {
 				pointer-events: none;
 				cursor: default;
 				opacity: 0.7;
 			}
-			&.notNow {
-				color: #bdbdbd;
-				text-align: right;
-				font-family: Helvetica;
-				font-size: 16px;
-				font-style: normal;
-				font-weight: 400;
-				line-height: normal;
-			}
-			&.today {
-				color: #ff0000 !important;
-				text-align: right;
-				font-family: Helvetica;
-				font-size: 16px;
-				font-style: normal;
-				font-weight: 400;
-				line-height: normal;
-			}
-			.month {
-				padding-left: 5px;
-				text-transform: lowercase;
-			}
-		}
-		.weekend {
-			background: #f5f5f5;
-			color: #7b7b7b;
-			text-align: right;
-			font-family: Helvetica;
-			font-size: 16px;
-			font-style: normal;
-			font-weight: 400;
-			line-height: normal;
 		}
 	}
 	.days {

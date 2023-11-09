@@ -1,39 +1,42 @@
 <svelte:options customElement="search-box" />
 
 <script>
-	// @ts-nocheck
+	/**
+	 * Import Svelte
+	 */
+
 	import { createEventDispatcher, setContext } from "svelte";
-	import { writable } from "svelte/store";
-	import { setDefaultOptions, addDays, eachDayOfInterval, startOfMonth, startOfWeek, format, addMonths, subMonths } from "date-fns";
-	import { ru } from "date-fns/locale";
+	import { fade, fly } from "svelte/transition";
+
+	/**
+	 * Data fns import and settings
+	 */
+
+	import { setDefaultOptions, format, addMonths, subMonths } from "date-fns";
+	import { bg, ru } from "date-fns/locale";
+	setDefaultOptions({ locale: ru, weekStartsOn: 1 });
+
+	/**
+	 * Imports comonents
+	 */
 
 	import City from "./City.svelte";
 	import Calendar from "./Calendar.svelte";
 
-	const globalEmit = createEventDispatcher();
-
-	setContext('globalEmit', globalEmit)
-
+	/**
+	 * Export
+	 */
 
 	export let cities;
 
-	setDefaultOptions({ locale: ru, weekStartsOn: 1 });
+	/**
+	 * Event
+	 */
 
-	const today = writable(new Date());
+	const globalEmit = createEventDispatcher();
+	setContext("globalEmit", globalEmit);
+
 	let currentDay = new Date();
-	let start = startOfWeek(startOfMonth($today));
-	let end = addDays(start, 41);
-	let startNext = addMonths(startOfMonth(start), 1);
-	let endNext = addDays(startOfWeek(startNext), 41);
-	const days = eachDayOfInterval({
-		start,
-		end,
-	});
-	const daysNext = eachDayOfInterval({
-		start: startOfWeek(startNext),
-		end: endNext,
-	});
-	let city;
 	let firstCity;
 	let secondCity;
 	let openDate = false;
@@ -41,9 +44,16 @@
 	let openSecond = false;
 	let yes = true;
 	let startTrip, endTrip;
+	let showGood = false;
+	let errorFirst = false,
+		errorSecond = false,
+		errorStart = false,
+		errorEnd = false;
 
-	$: start, end, startNext, endNext;
-	$: console.log(openFirst);
+	/**
+	 * Events for calendar : select, next, prev
+	 */
+
 	const choiceTrip = (e) => {
 		let item = e.detail;
 		if (startTrip > endTrip) {
@@ -52,6 +62,8 @@
 		} else if (startTrip != undefined && yes) {
 			endTrip = item;
 		} else if (startTrip == undefined) {
+			startTrip = item;
+		} else if (!yes) {
 			startTrip = item;
 		}
 	};
@@ -62,6 +74,7 @@
 	const nextMonth = () => {
 		currentDay = addMonths(currentDay, 1);
 	};
+
 	$: !yes ? (endTrip = "") : endTrip;
 </script>
 
@@ -71,7 +84,15 @@
 			<div class="title">Откуда</div>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="select" on:click|stopPropagation={() => (openFirst = true)}>
+			<div
+				class="select"
+				class:error={errorFirst}
+				on:click|stopPropagation={() => {
+					openFirst = true;
+					openSecond = false;
+					openDate = false;
+				}}
+			>
 				<svg xmlns="http://www.w3.org/2000/svg" width="11" height="13" viewBox="0 0 11 13" fill="none">
 					<path
 						d="M5.48161 0.0561523C7.00223 0.0561523 8.30212 0.474642 9.38127 1.31162C10.4604 2.1486 11 3.16356 11 4.35649C11 4.95296 10.8099 5.64082 10.4298 6.42008C10.0496 7.19933 9.58974 7.92087 9.05017 8.58468C8.51059 9.24849 7.97101 9.87382 7.43144 10.4607C6.89186 11.0475 6.43813 11.5141 6.07023 11.8604L5.48161 12.3511C5.33445 12.2356 5.13824 12.0625 4.89298 11.8316C4.64771 11.6007 4.21237 11.1533 3.58696 10.4895C2.96154 9.82571 2.40357 9.18114 1.91304 8.55582C1.42252 7.93049 0.981048 7.22338 0.588629 6.43451C0.19621 5.64563 0 4.95296 0 4.35649C0 3.16356 0.533445 2.1486 1.60033 1.31162C2.66722 0.474642 3.96098 0.0561523 5.48161 0.0561523ZM5.48161 5.88614C6.02118 5.88614 6.48718 5.73702 6.8796 5.43879C7.27202 5.14056 7.46823 4.77979 7.46823 4.35649C7.46823 3.93319 7.27202 3.57242 6.8796 3.27419C6.48718 2.97596 6.02118 2.82684 5.48161 2.82684C4.94203 2.82684 4.48216 2.97596 4.10201 3.27419C3.72185 3.57242 3.53177 3.93319 3.53177 4.35649C3.53177 4.77979 3.72185 5.14056 4.10201 5.43879C4.48216 5.73702 4.94203 5.88614 5.48161 5.88614Z"
@@ -96,7 +117,15 @@
 			<div class="title">Куда</div>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="select" on:click={() => (openSecond = true)}>
+			<div
+				class="select"
+				class:error={errorSecond}
+				on:click={() => {
+					openFirst = false;
+					openSecond = true;
+					openDate = false;
+				}}
+			>
 				<svg xmlns="http://www.w3.org/2000/svg" width="11" height="13" viewBox="0 0 11 13" fill="none">
 					<path
 						d="M5.48161 0.0561523C7.00223 0.0561523 8.30212 0.474642 9.38127 1.31162C10.4604 2.1486 11 3.16356 11 4.35649C11 4.95296 10.8099 5.64082 10.4298 6.42008C10.0496 7.19933 9.58974 7.92087 9.05017 8.58468C8.51059 9.24849 7.97101 9.87382 7.43144 10.4607C6.89186 11.0475 6.43813 11.5141 6.07023 11.8604L5.48161 12.3511C5.33445 12.2356 5.13824 12.0625 4.89298 11.8316C4.64771 11.6007 4.21237 11.1533 3.58696 10.4895C2.96154 9.82571 2.40357 9.18114 1.91304 8.55582C1.42252 7.93049 0.981048 7.22338 0.588629 6.43451C0.19621 5.64563 0 4.95296 0 4.35649C0 3.16356 0.533445 2.1486 1.60033 1.31162C2.66722 0.474642 3.96098 0.0561523 5.48161 0.0561523ZM5.48161 5.88614C6.02118 5.88614 6.48718 5.73702 6.8796 5.43879C7.27202 5.14056 7.46823 4.77979 7.46823 4.35649C7.46823 3.93319 7.27202 3.57242 6.8796 3.27419C6.48718 2.97596 6.02118 2.82684 5.48161 2.82684C4.94203 2.82684 4.48216 2.97596 4.10201 3.27419C3.72185 3.57242 3.53177 3.93319 3.53177 4.35649C3.53177 4.77979 3.72185 5.14056 4.10201 5.43879C4.48216 5.73702 4.94203 5.88614 5.48161 5.88614Z"
@@ -127,7 +156,10 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="date"
+			class:error={errorStart || errorEnd}
 			on:click={() => {
+				openFirst = false;
+				openSecond = false;
 				openDate = true;
 			}}
 		>
@@ -141,7 +173,7 @@
 					</svg>
 				{/if}{startTrip ? format(startTrip, "EEEEEE d/MM") : ""}
 			</div>
-			-
+			<span />
 			<div class="end">
 				{#if endTrip}
 					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" viewBox="0 0 12 13" fill="none">
@@ -154,7 +186,7 @@
 			</div>
 
 			{#if openDate}
-				<div class="openDate">
+				<div class="openDate" transition:fade|local>
 					<div class="calendars">
 						<Calendar
 							on:preview={prevMonth}
@@ -187,19 +219,42 @@
 			{/if}
 		</div>
 	</div>
-	<button on:click={() => {
-		if(!firstCity?.trim()?.length || !secondCity?.trim()?.length || !startTrip || (yes && !endTrip)) {
-			alert('Не все поля заполнены');
-			return;
-		}
-		globalEmit('search', {
-			firstCity,
-			secondCity,
-			startTrip,
-			endTrip
-		})
-	}}>Найти</button>
+	<button
+		on:click={() => {
+			openDate = false;
+			openFirst = false;
+			openSecond = false;
+			if (!firstCity?.trim()?.length) {
+				errorFirst = true;
+				alert("Не все поля заполнены");
+				return;
+			} else if (!secondCity?.trim()?.length) {
+				errorSecond = true;
+			} else if (!startTrip) {
+				errorStart = true;
+			} else if (yes && !endTrip) {
+				errorEnd = true;
+			}
+
+			showGood = true;
+			globalEmit("search", {
+				firstCity,
+				secondCity,
+				startTrip,
+				endTrip,
+			});
+		}}>Найти</button
+	>
 </div>
+{#if showGood}
+	<div class="bg" transition:fly|local on:click|stopPropagation|preventDefault={() => (showGood = false)} />
+	<div class="modal" transition:fade|local>
+		<div>{firstCity}</div>
+		<div>{secondCity}</div>
+		<div>{format(startTrip, "EEEEEE d/MM/yy")}</div>
+		<div>{format(endTrip, "EEEEEE d/MM/yy")}</div>
+	</div>
+{/if}
 
 <style lang="scss">
 	.search-box {
@@ -207,7 +262,9 @@
 		gap: 16px;
 		flex-shrink: 0;
 		align-items: flex-end;
-
+		.error {
+			border: 1px solid red;
+		}
 		.place {
 			display: flex;
 			gap: 10px;
@@ -282,6 +339,11 @@
 				cursor: pointer;
 				position: relative;
 				text-transform: capitalize;
+				span {
+					width: 20.4px;
+					height: 0.838px;
+					background: #bdbdbd;
+				}
 			}
 			.openDate {
 				display: flex;
@@ -331,5 +393,28 @@
 			pointer-events: all;
 			cursor: pointer;
 		}
+	}
+	.bg {
+		background: #333;
+		opacity: 0.3;
+		width: 100vw;
+		height: 100vh;
+		left: 0;
+		position: fixed;
+		top: 0;
+	}
+	.modal {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		background-color: #fff;
+		width: 300px;
+		height: 200px;
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 	}
 </style>
